@@ -18,17 +18,17 @@ function* getSubEvents(event) {
 
 function emitContexts(contexts) {
     for (let c of contexts.keys()) {
-        let context = contexts.get(c);
-        context.numberCall++;
-        if ((context.numberCall - 1) % context.through !== 0) {
-            continue;
-        }
-        if (context.several === 1) {
-            contexts.delete(c);
-        }
-
-        context.several--;
-        context.handler.call(c);
+        contexts.get(c)
+            .forEach(context => {
+                if ((context.several === -1 || context.several > 0) &&
+                    (context.numberCall) % context.through === 0) {
+                    context.handler.call(c);
+                }
+                context.numberCall++;
+                if (context.several !== -1 && context.several !== 0) {
+                    context.several--;
+                }
+            });
     }
 }
 
@@ -53,15 +53,19 @@ function getEmitter() {
             if (!this.events.has(event)) {
                 this.events.set(event, new Map());
             }
+            if (this.events.get(event).has(context)) {
+                this.events.get(event).get(context)
+                    .push({ handler: handler, several: -1, through: -1, numberCall: 0 });
+            }
             this.events
                 .get(event)
                 .set(context,
-                    {
+                    [{
                         handler: handler,
                         several: -1,
                         through: -1,
                         numberCall: 0
-                    });
+                    }]);
 
             return this;
         },
@@ -116,7 +120,9 @@ function getEmitter() {
             if (!this.events.has(event) || !this.events.get(event).has(context)) {
                 this.on(event, context, handler);
             }
-            let c = this.events.get(event).get(context);
+            let c = this.events.get(event)
+                .get(context)
+                .slice(-1)[0];
             c.several = times;
 
             return this;
@@ -132,10 +138,10 @@ function getEmitter() {
          * @returns {Object}
          */
         through: function (event, context, handler, frequency) {
-            if (!this.events.has(event) || !this.events.get(event).has(context)) {
-                this.on(event, context, handler);
-            }
-            let c = this.events.get(event).get(context);
+            this.on(event, context, handler);
+            let c = this.events.get(event)
+                .get(context)
+                .slice(-1)[0];
             c.through = frequency;
 
             return this;
