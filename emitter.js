@@ -56,16 +56,17 @@ function getEmitter() {
             if (this.events.get(event).has(context)) {
                 this.events.get(event).get(context)
                     .push({ handler: handler, several: -1, through: -1, numberCall: 0 });
+            } else {
+                this.events
+                    .get(event)
+                    .set(context,
+                        [{
+                            handler: handler,
+                            several: -1,
+                            through: -1,
+                            numberCall: 0
+                        }]);
             }
-            this.events
-                .get(event)
-                .set(context,
-                    [{
-                        handler: handler,
-                        several: -1,
-                        through: -1,
-                        numberCall: 0
-                    }]);
 
             return this;
         },
