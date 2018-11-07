@@ -6,14 +6,15 @@
  */
 const isStar = true;
 
-function* getSubEvents(event) {
-    var eventStr = event;
-    yield eventStr;
-    let index;
-    while ((index = eventStr.lastIndexOf('.')) !== -1) {
-        eventStr = eventStr.substring(0, index);
-        yield eventStr;
-    }
+function getSubEvents(event) {
+    let subEvents = [];
+    let index = event.length;
+    do {
+        event = event.substring(0, index);
+        subEvents.push(event);
+    } while ((index = event.lastIndexOf('.')) !== -1);
+
+    return subEvents;
 }
 
 function emitContexts(contexts) {
